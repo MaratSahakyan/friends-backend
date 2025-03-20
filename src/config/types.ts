@@ -9,7 +9,14 @@ export interface IDbConfig {
   password: string;
 }
 
+export interface IJwtConfig {
+  secret: string;
+  accessSecret: string;
+  refreshSecret: string;
+}
+
 export interface IConfig {
   app: IAppConfig;
   db: IDbConfig;
+  jwt: IJwtConfig;
 }
