@@ -1,0 +1,18 @@
+
+name: friends-backend
+on: 
+  push:
+    branches:
+      - master
+jobs:
+  build: 
+    runs-on: ubuntu-latest
+    steps: 
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Install dependencies
+      run: npm install
+    - name: Build code
+      run: npm run build
+    - name: Run tests
+      run: npm run test:e2e
