@@ -1,28 +1,56 @@
 name: friends-backend
-on: 
+on:
   push:
     branches:
       - master
 jobs:
-  build: 
+  build:
     runs-on: ubuntu-latest
-    steps: 
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Install dependencies
-      run: npm install
-    - name: Build code
-      run: npm run build
-    - name: Set environment variables
-      run: |
-        echo "APP_PORT=8000" >> $GITHUB_ENV
-        echo "DATABASE_HOST=localhost" >> $GITHUB_ENV
-        echo "DATABASE_PORT=5433" >> $GITHUB_ENV
-        echo "DATABASE_USER=postgres" >> $GITHUB_ENV
-        echo "DATABASE_PASSWORD=password" >> $GITHUB_ENV
-        echo "DATABASE_NAME=postgres" >> $GITHUB_ENV
-        echo "JWT_SECRET=anyKey" >> $GITHUB_ENV
-        echo "JWT_ACCESS_SECRET=JWT_ACCESS_SECRET" >> $GITHUB_ENV
-        echo "JWT_REFRESH_SECRET=JWT_REFRESH_SECRET" >> $GITHUB_ENV
-    - name: Run tests
-      run: npm run test:e2e
+    services:
+      postgres:
+        image: postgres:latest
+        ports:
+          - 5433:5432
+        env:
+          POSTGRES_USER: ${{ secrets.DATABASE_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.DATABASE_NAME }}
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '22.11.0'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5433 -U postgres; do
+            echo "Waiting for PostgreSQL to be ready..."
+            sleep 5
+          done
+
+      - name: Export environment variables
+        run: |
+          echo "DATABASE_HOST=${{ secrets.DATABASE_HOST }}" >> $GITHUB_ENV
+          echo "DATABASE_PORT=${{ secrets.DATABASE_PORT }}" >> $GITHUB_ENV
+          echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" >> $GITHUB_ENV
+          echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> $GITHUB_ENV
+          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> $GITHUB_ENV
+          echo "DATABASE_SYNCHRONIZE=${{ secrets.DATABASE_SYNCHRONIZE }}" >> $GITHUB_ENV
+
+      - name: Build code
+        run: npm run build
+
+      - name: Run tests
+        run: npm run test:e2e
