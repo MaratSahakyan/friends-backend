@@ -1,4 +1,3 @@
-
 name: friends-backend
 on: 
   push:
@@ -14,5 +13,16 @@ jobs:
       run: npm install
     - name: Build code
       run: npm run build
+    - name: Set environment variables
+      run: |
+        echo "APP_PORT=8000" >> $GITHUB_ENV
+        echo "DATABASE_HOST=localhost" >> $GITHUB_ENV
+        echo "DATABASE_PORT=5433" >> $GITHUB_ENV
+        echo "DATABASE_USER=postgres" >> $GITHUB_ENV
+        echo "DATABASE_PASSWORD=password" >> $GITHUB_ENV
+        echo "DATABASE_NAME=postgres" >> $GITHUB_ENV
+        echo "JWT_SECRET=anyKey" >> $GITHUB_ENV
+        echo "JWT_ACCESS_SECRET=JWT_ACCESS_SECRET" >> $GITHUB_ENV
+        echo "JWT_REFRESH_SECRET=JWT_REFRESH_SECRET" >> $GITHUB_ENV
     - name: Run tests
       run: npm run test:e2e
