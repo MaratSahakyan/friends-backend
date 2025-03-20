@@ -16,4 +16,9 @@ export default () =>
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
     },
+    jwt: {
+      secret: process.env.JWT_SECRET,
+      accessSecret: process.env.JWT_ACCESS_SECRET,
+      refreshSecret: process.env.JWT_REFRESH_SECRET,
+    },
   }) as IConfig;

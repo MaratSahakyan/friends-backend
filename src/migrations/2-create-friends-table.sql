@@ -2,7 +2,6 @@ CREATE TABLE friends (
                      id SERIAL PRIMARY KEY,
                      user_id INT NOT NULL,
                      friend_id INT NOT NULL,
-                     status VARCHAR(20) NOT NULL DEFAULT 'pending',
                      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                      CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
