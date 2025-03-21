@@ -26,9 +26,8 @@ describe('AuthController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    connection = moduleFixture.get<Pool>(DATABASE_POOL);
 
-    await clearTestDb();
+    connection = moduleFixture.get<Pool>(DATABASE_POOL);
 
     app.useGlobalPipes(
       new ValidationPipe({
@@ -42,7 +41,6 @@ describe('AuthController (e2e)', () => {
   });
 
   afterAll(async () => {
-    await clearTestDb();
     await app.close();
   });
 
@@ -51,23 +49,15 @@ describe('AuthController (e2e)', () => {
   });
 
   async function clearTestDb() {
-    try {
-      await connection.query(
-        'TRUNCATE users, friends, friend_requests RESTART IDENTITY CASCADE;',
-      );
-      console.log('Database cleared.');
-    } catch (error) {
-      console.error('Error clearing database:', error);
-      throw error;
-    }
+    await connection.query('TRUNCATE users RESTART IDENTITY CASCADE;');
   }
 
   it('should register a new user', async () => {
     const createUserDto = {
-      first_name: 'John-12',
-      last_name: 'Doe-12',
-      age: 25,
-      email: 'john.12.doe@example.com',
+      first_name: 'John',
+      last_name: 'Doe',
+      age: 30,
+      email: 'john.doe@example.com',
       password: 'Password123!',
     };
 
@@ -82,18 +72,40 @@ describe('AuthController (e2e)', () => {
 
     const result = await connection.query(
       'SELECT * FROM users WHERE email = $1',
-      ['john.12.doe@example.com'],
+      ['john.doe@example.com'],
     );
     expect(result.rows.length).toBe(1);
-    expect(result.rows[0].email).toBe('john.12.doe@example.com');
+    expect(result.rows[0].email).toBe('john.doe@example.com');
+  });
+
+  it('should fail to register with duplicate email', async () => {
+    const createUserDto = {
+      first_name: 'John',
+      last_name: 'Doe',
+      age: 30,
+      email: 'john.doe@example.com',
+      password: 'Password123!',
+    };
+
+    await request(app.getHttpServer())
+      .post('/auth/register')
+      .send(createUserDto)
+      .expect(201);
+
+    const response = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send(createUserDto)
+      .expect(400);
+
+    expect(response.body.message).toBe('Wrong Credentials. Please try again');
   });
 
   it('should login with valid credentials', async () => {
     const createUserDto = {
-      first_name: 'John-13',
-      last_name: 'Doe-13',
+      first_name: 'John',
+      last_name: 'Doe',
       age: 30,
-      email: 'john.13.doe@example.com',
+      email: 'john.doe@example.com',
       password: 'Password123!',
     };
 
@@ -103,7 +115,7 @@ describe('AuthController (e2e)', () => {
       .expect(201);
 
     const loginUserDto = {
-      email: 'john.13.doe@example.com',
+      email: 'john.doe@example.com',
       password: 'Password123!',
     };
 
@@ -115,5 +127,54 @@ describe('AuthController (e2e)', () => {
     expect(response.body.tokens).toBeDefined();
     expect(response.body.tokens.accessToken).toBeDefined();
     expect(response.body.tokens.refreshToken).toBeDefined();
+  });
+
+  it('should fail to login with invalid credentials', async () => {
+    const loginUserDto = {
+      email: 'john.doe@example.com',
+      password: 'WrongPassword!',
+    };
+
+    const response = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send(loginUserDto)
+      .expect(404);
+
+    expect(response.body.message).toBe('Wrong Credentials.');
+  });
+
+  it('should refresh tokens with a valid refresh token', async () => {
+    const createUserDto = {
+      first_name: 'John',
+      last_name: 'Doe',
+      age: 30,
+      email: 'john.doe@example.com',
+      password: 'Password123!',
+    };
+
+    await request(app.getHttpServer())
+      .post('/auth/register')
+      .send(createUserDto)
+      .expect(201);
+
+    const loginUserDto = {
+      email: 'john.doe@example.com',
+      password: 'Password123!',
+    };
+
+    const loginResponse = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send(loginUserDto)
+      .expect(200);
+
+    const refreshToken = loginResponse.body.tokens.refreshToken;
+
+    const refreshResponse = await request(app.getHttpServer())
+      .get('/auth/refresh')
+      .set('Authorization', `Bearer ${refreshToken}`)
+      .expect(200);
+
+    expect(refreshResponse.body.accessToken).toBeDefined();
+    expect(refreshResponse.body.refreshToken).toBeDefined();
   });
 });
