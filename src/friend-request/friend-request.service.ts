@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { FriendRequestStatus } from "./types";
+import { FriendRequestStatus } from './types';
 
 @Injectable()
 export class FriendRequestService {

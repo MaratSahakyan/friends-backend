@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { hashSync } from 'bcrypt';
 import { DatabaseService } from '../database/database.service';
-import { ICreateUser, IUpdateUser } from "./types";
+import { ICreateUser, IUpdateUser } from './types';
 import { SALT } from '../common/constants';
 import { FriendsService } from '../friends/friends.service';
 import { FriendRequestStatus } from '../friend-request/types';
