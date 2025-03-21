@@ -32,6 +32,46 @@ describe('UsersController (e2e)', () => {
     connection = moduleFixture.get<Pool>(DATABASE_POOL);
     jwtService = moduleFixture.get<JwtService>(JwtService);
 
+    await connection.query(`
+    CREATE TABLE IF NOT EXISTS users (
+                                     id SERIAL PRIMARY KEY,
+                                     first_name VARCHAR(50) NOT NULL,
+                                     last_name VARCHAR(50) NOT NULL,
+                                     email VARCHAR(100) UNIQUE NOT NULL,
+                                     password_hash VARCHAR(255) NOT NULL,
+                                     age INT,
+                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    `);
+
+    await connection.query(`
+    CREATE TABLE IF NOT EXISTS friends (
+                         id SERIAL PRIMARY KEY,
+                         user_id INT NOT NULL,
+                         friend_id INT NOT NULL,
+                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                         CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                         CONSTRAINT fk_friend_id FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
+                         CONSTRAINT unique_friendship UNIQUE (user_id, friend_id)
+    );
+`);
+
+    await connection.query(`
+    CREATE TABLE IF NOT EXISTS friend_requests (
+                                 id SERIAL PRIMARY KEY,
+                                 sender_id INT NOT NULL,
+                                 receiver_id INT NOT NULL,
+                                 status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accept', 'reject')),
+                                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                 CONSTRAINT fk_sender_id FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+                                 CONSTRAINT fk_receiver_id FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
+                                 CONSTRAINT unique_request UNIQUE (sender_id, receiver_id)
+    );
+    `);
+
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
