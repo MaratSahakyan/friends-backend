@@ -10,8 +10,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RespondFriendRequestDto, SendFriendRequestDto } from './users.dto';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import {
+  RespondFriendRequestDto,
+  SendFriendRequestDto,
+  UpdateUserDto,
+} from './users.dto';
 
 @Controller('users')
 export class UsersController {
@@ -21,6 +25,12 @@ export class UsersController {
   @Get()
   async getUsers(@Query('search') search: string) {
     return this.usersService.getUsers(search);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/user')
+  async updateUser(@Req() req, @Body() body: UpdateUserDto) {
+    return this.usersService.update(req.user.userId, body);
   }
 
   @UseGuards(JwtAuthGuard)

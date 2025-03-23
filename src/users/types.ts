@@ -13,14 +13,6 @@ export interface ICreateUser extends IUserBase {
 
 export interface IUpdateUser extends IUserBase {}
 
-export interface ICreateUser {
-  first_name: string;
-  last_name: string;
-  email: string;
-  password: string;
-  age: number;
-}
-
 export interface ISendFriendRequest {
   receiverId: number;
 }

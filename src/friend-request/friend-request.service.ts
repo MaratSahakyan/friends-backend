@@ -24,10 +24,10 @@ export class FriendRequestService {
       }
 
       const checkQuery = `
-      SELECT sender_id, receiver_id, status 
-      FROM friend_requests 
-      WHERE (sender_id = $1 AND receiver_id = $2) 
-         OR (sender_id = $2 AND receiver_id = $1);
+        SELECT sender_id, receiver_id, status 
+        FROM friend_requests 
+        WHERE (sender_id = $1 AND receiver_id = $2) 
+           OR (sender_id = $2 AND receiver_id = $1);
     `;
       const checkResult = await this.connection.query(checkQuery, [
         senderId,
@@ -108,8 +108,6 @@ export class FriendRequestService {
     senderId: number,
     action: FriendRequestStatus,
   ) {
-    console.log('=>(friends.service.ts:107) senderId', senderId);
-    console.log('=>(friends.service.ts:107) receiverId', receiverId);
     try {
       const checkQuery = `
       SELECT * FROM friend_requests 
