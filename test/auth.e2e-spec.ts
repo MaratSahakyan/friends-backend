@@ -6,7 +6,7 @@ import { AuthModule } from '../src/auth/auth.module';
 import { Pool } from 'pg';
 import { ConfigModule } from '@nestjs/config';
 import configuration from '../src/config/configuration';
-import { DATABASE_POOL } from '../src/database/database.service';
+import { DatabaseService } from "../src/database/database.service";
 
 let app: INestApplication;
 let connection: Pool;
@@ -26,8 +26,7 @@ describe('AuthController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-
-    connection = moduleFixture.get<Pool>(DATABASE_POOL);
+    connection = moduleFixture.get<DatabaseService>(DatabaseService).pool;
 
     app.useGlobalPipes(
       new ValidationPipe({

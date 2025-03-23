@@ -8,14 +8,6 @@ export const DATABASE_POOL = 'DATABASE_POOL';
 
 @Injectable()
 export class DatabaseService implements OnModuleInit, OnModuleDestroy {
-  public static readonly DATABASE_POOL = {
-    provide: DATABASE_POOL,
-    useFactory: async (databaseService: DatabaseService) => {
-      return databaseService.pool;
-    },
-    inject: [DatabaseService],
-  };
-
   public pool: Pool;
 
   constructor(private configService: ConfigService) {
